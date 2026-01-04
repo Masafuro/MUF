@@ -1,0 +1,24 @@
+services:
+  muf-redis:
+    image: redis:7.2-alpine
+    container_name: muf-redis
+    command: >
+      redis-server 
+      --notify-keyspace-events KEA 
+      --appendonly yes 
+      --maxmemory 512mb 
+      --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - muf-network
+    restart: always
+
+networks:
+  muf-network:
+    external: true
+
+volumes:
+  redis_data:
