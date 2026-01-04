@@ -1,0 +1,17 @@
+services:
+  muf-terminal:
+    build:
+      context: ..
+      dockerfile: terminal/Dockerfile
+    container_name: muf-terminal
+    # 対話モードを有効にするための重要設定
+    tty: true
+    stdin_open: true
+    environment:
+      - REDIS_HOST=muf-redis
+    networks:
+      - muf-network
+
+networks:
+  muf-network:
+    external: true

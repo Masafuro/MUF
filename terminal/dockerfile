@@ -1,0 +1,14 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN pip install --no-cache-dir redis
+
+# 基準点（MUFフォルダ）からSDKとプログラムをコピー
+COPY ./muf /app/muf
+COPY terminal/terminal.py /app/terminal.py
+
+# インタラクティブな実行を維持するため、出力をバッファリングしない設定
+ENV PYTHONUNBUFFERED=1
+
+CMD ["python", "terminal.py"]

@@ -2,6 +2,9 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
+# 環境変数を設定して、Pythonの出力をバッファリングせずリアルタイムで表示させます
+ENV PYTHONUNBUFFERED=1
+
 # 依存ライブラリのインストール
 RUN pip install --no-cache-dir redis
 
