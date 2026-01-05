@@ -1,0 +1,11 @@
+# monitor/Dockerfile
+FROM python:3.11-alpine
+
+RUN pip install redis
+
+WORKDIR /app
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
+
+# 起動と同時にモニタープログラムを実行
+CMD ["python", "monitor/main.py"]

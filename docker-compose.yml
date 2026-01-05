@@ -1,0 +1,5 @@
+# /docker-compose.yml
+include:
+  - redis/docker-compose.yml
+  - monitor/docker-compose.yml
+  - terminal/docker-compose.yml

@@ -10,10 +10,12 @@ from ..protocol import naming, constants
 class MUFClient:
     """
     MUFプロトコルのフロントエンドおよびバックエンド機能を提供するメインクライアントクラスです。
+    全ての入力（ユニット名、ID、ステータス）は内部で自動的に小文字に正規化されます。
     """
 
     def __init__(self, unit_name: str, host: str = "localhost", port: int = 6379, db: int = 0):
-        self.unit_name = unit_name
+        # ユニット名を初期化時に小文字化し、DB上のパスの不整合を未然に防ぎます
+        self.unit_name = unit_name.lower()
         self.connection = MUFConnection(host=host, port=port, db=db)
         self.watcher = MUFWatcher(self.connection)
         self._is_running = False
@@ -42,46 +44,48 @@ class MUFClient:
         await self.stop()
 
     async def send(self, status: str, message_id: str, data: bytes, ttl: Optional[int] = None) -> str:
-        """指定したステータスでデータをポストします。パスを返します。"""
+        """指定したステータスでデータをポストします。naming.build_pathにより自動的に小文字化されます。"""
+        # ステータスを正規化
+        status_norm = status.lower()
+        
         if ttl is None:
-            # ステータスに応じたデフォルトTTLを選択
+            # 正規化されたステータスに基づいてTTLを選択
             ttl_map = {
-                constants.STATUS_REQ: constants.DEFAULT_TTL_REQ,
-                constants.STATUS_RES: constants.DEFAULT_TTL_RES,
-                constants.STATUS_ERR: constants.DEFAULT_TTL_ERR,
-                constants.STATUS_KEEP: constants.DEFAULT_TTL_KEEP
+                constants.STATUS_REQ.lower(): constants.DEFAULT_TTL_REQ,
+                constants.STATUS_RES.lower(): constants.DEFAULT_TTL_RES,
+                constants.STATUS_ERR.lower(): constants.DEFAULT_TTL_ERR,
+                constants.STATUS_KEEP.lower(): constants.DEFAULT_TTL_KEEP
             }
-            ttl = ttl_map.get(status, constants.DEFAULT_TTL_RES)
+            ttl = ttl_map.get(status_norm, constants.DEFAULT_TTL_RES)
 
-        path = naming.build_path(self.unit_name, status, message_id)
+        # naming.build_path 内で全ての要素が小文字に変換されます
+        path = naming.build_path(self.unit_name, status_norm, message_id)
         await self.connection.set_ex(path, data, ttl)
         return path
 
     async def request(self, target_unit: str, data: bytes, timeout: float = 10.0) -> bytes:
         """
-        特定のユニットに対してリクエストを送り、レスポンスを待機します。
-        内部でRESおよびERRパスを監視し、結果を返却または例外を発生させます。
+        特定のユニット（現在は自分自身の空間）に対してリクエストを送り、レスポンスを待機します。
         """
-        message_id = str(uuid.uuid4())
-        # 自分(ユニット名)宛てのRESとERRのパスを構築
+        # UUIDも念のため小文字として扱います
+        message_id = str(uuid.uuid4()).lower()
+        
+        # 監視対象パスとリクエストパスの構築
         res_path = naming.build_path(self.unit_name, constants.STATUS_RES, message_id)
         err_path = naming.build_path(self.unit_name, constants.STATUS_ERR, message_id)
 
-        # 監視を開始してからリクエストをポストする（レースコンディション防止）
         wait_res = asyncio.create_task(self.watcher.wait_for_key(res_path, timeout))
         wait_err = asyncio.create_task(self.watcher.wait_for_key(err_path, timeout))
 
-        # リクエストをポスト
+        # リクエストのポスト（自分のREQディレクトリへ）
         req_path = naming.build_path(self.unit_name, constants.STATUS_REQ, message_id)
         await self.connection.set_ex(req_path, data, int(timeout))
 
-        # いずれかのパスが出現するのを待機
         done, pending = await asyncio.wait(
             [wait_res, wait_err], 
             return_when=asyncio.FIRST_COMPLETED
         )
         
-        # 残りのタスクをキャンセル
         for task in pending:
             task.cancel()
 
@@ -98,11 +102,13 @@ class MUFClient:
     async def listen(self, handler: Callable[[str, str, bytes], Awaitable[Optional[bytes]]]) -> None:
         """
         バックエンドとしてリクエストを待ち受けます。
-        handlerは (sender_unit, message_id, data) を受け取り、返値をRESとして送り返します。
         """
         async def _internal_handler(key_path: str):
+            # naming.parse_path は内部で小文字化して解析します
             sender, status, msg_id = naming.parse_path(key_path)
-            if status != constants.STATUS_REQ:
+            
+            # constantsの値も小文字と比較
+            if status != constants.STATUS_REQ.lower():
                 return
 
             req_data = await self.connection.get(key_path)
@@ -110,17 +116,20 @@ class MUFClient:
                 return
 
             try:
-                # ユーザー定義のハンドラを実行
                 response_data = await handler(sender, msg_id, req_data)
                 if response_data is not None:
-                    # 成功パス: 元のリクエスト元(sender)のRESディレクトリへ返信
+                    # レスポンスも正規化されたパスへ書き戻します
                     res_path = naming.build_path(sender, constants.STATUS_RES, msg_id)
                     await self.connection.set_ex(res_path, response_data, constants.DEFAULT_TTL_RES)
             except Exception as e:
-                # 失敗パス: 元のリクエスト元(sender)のERRディレクトリへ通知
                 err_path = naming.build_path(sender, constants.STATUS_ERR, msg_id)
                 await self.connection.set_ex(err_path, str(e).encode(), constants.DEFAULT_TTL_ERR)
 
-        # REQステータスのパスを全て監視対象として登録
-        req_prefix = f"{constants.PROTOCOL_ROOT}{constants.PATH_SEPARATOR}*{constants.PATH_SEPARATOR}{constants.STATUS_REQ}"
-        self.watcher.register_handler(req_prefix, _internal_handler)
+        # 監視パターン自体も小文字で構築
+        root = constants.PROTOCOL_ROOT.lower()
+        sep = constants.PATH_SEPARATOR
+        req_stat = constants.STATUS_REQ.lower()
+        
+        # 全てのユニットのREQを監視するワイルドカードパターン
+        req_pattern = f"{root}{sep}*{sep}{req_stat}{sep}*"
+        self.watcher.register_handler(req_pattern, _internal_handler)

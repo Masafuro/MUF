@@ -9,6 +9,7 @@ services:
     networks:
       - muf-network
     restart: always
+    # 対話モードを有効にするための設定
     stdin_open: true
     tty: true
     command: python terminal/main.py

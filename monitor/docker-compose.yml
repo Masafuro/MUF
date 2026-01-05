@@ -1,0 +1,15 @@
+# monitor/docker-compose.yml
+services:
+  muf-monitor:
+    build: .
+    container_name: muf-monitor
+    volumes:
+      - ../muf:/app/muf
+      - .:/app/monitor
+    networks:
+      - muf-network
+    restart: always
+
+networks:
+  muf-network:
+    external: true
