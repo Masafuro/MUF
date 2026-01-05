@@ -1,0 +1,15 @@
+# echo-unit/docker-compose.yml
+services:
+  muf-echo-unit:
+    build: .
+    container_name: muf-echo-unit
+    volumes:
+      - ../muf:/app/muf
+      - .:/app/echo-unit
+    networks:
+      - muf-network
+    restart: always
+
+networks:
+  muf-network:
+    external: true

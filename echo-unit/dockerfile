@@ -1,0 +1,11 @@
+# echo_unit/Dockerfile
+FROM python:3.11-alpine
+
+RUN pip install redis
+
+WORKDIR /app
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
+
+# main.pyを実行（ソースはボリュームマウントされる前提）
+CMD ["python", "echo-unit/main.py"]

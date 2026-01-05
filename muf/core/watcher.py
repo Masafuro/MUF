@@ -1,24 +1,22 @@
 # muf/core/watcher.py
 
 import asyncio
-from typing import Callable, Dict, Optional, Awaitable
+from typing import Callable, Optional, Awaitable, Any
 from redis.asyncio.client import PubSub
 from .connection import MUFConnection
+from .dispatcher import MUFEventDispatcher
 from ..protocol import naming
 
 class MUFWatcher:
     """
-    Keyspace Notificationsを監視し、イベントを各ハンドラや待機中のFutureへ配送するクラスです。
+    RedisとのPubSub接続を管理し、待機ループを実行するクラスです。
+    実質的な配送処理は MUFEventDispatcher に委譲します。
     """
-
     def __init__(self, connection: MUFConnection):
         self.connection = connection
+        self.dispatcher = MUFEventDispatcher()
         self._pubsub: Optional[PubSub] = None
         self._listen_task: Optional[asyncio.Task] = None
-        # 特定のパス（RES等）の出現を待機しているFutureの管理
-        self._waiters: Dict[str, asyncio.Future] = {}
-        # 特定のパス接頭辞（REQ等）に対して実行する非同期ハンドラの管理
-        self._handlers: Dict[str, Callable[[str], Awaitable[None]]] = {}
 
     async def start(self) -> None:
         """
@@ -32,7 +30,8 @@ class MUFWatcher:
 
         self._pubsub = self.connection.get_client().pubsub()
         # プロトコルで定義された全てのMUFパス（ワイルドカード）を購読対象とする
-        pattern = naming.build_keyspace_pattern(unit_name="*", status="*", message_id="*")
+        # 内部で __keyspace@0__:muf/*/*/* のようなパターンが構築されます
+        pattern = naming.build_keyspace_pattern("*", "*", "*")
         await self._pubsub.psubscribe(pattern)
         
         self._listen_task = asyncio.create_task(self._listen_loop())
@@ -56,7 +55,7 @@ class MUFWatcher:
 
     async def _listen_loop(self) -> None:
         """
-        Redisからの通知を常時監視し、適切な配送を行う内部メインループです。
+        Redisからの通知を常時監視し、Dispatcherに配送する内部ループです。
         """
         if self._pubsub is None:
             return
@@ -65,50 +64,38 @@ class MUFWatcher:
             try:
                 # ignore_subscribe_messages=Trueにより、購読成功時のメッセージをスキップ
                 message = await self._pubsub.get_message(ignore_subscribe_messages=True, timeout=None)
-                if not message:
+                if not message or message["type"] != "pmessage":
                     continue
 
-                if message["type"] == "pmessage":
-                    channel: bytes = message["channel"]
-                    key_path = naming.get_key_from_channel(channel)
-                    
-                    # 1. 待機中のFuture（レスポンス待ち等）のチェック
-                    if key_path in self._waiters:
-                        future = self._waiters.pop(key_path)
-                        if not future.done():
-                            future.set_result(key_path)
-
-                    # 2. 登録された汎用ハンドラ（リクエスト処理等）のチェック
-                    for prefix, handler in self._handlers.items():
-                        if key_path.startswith(prefix):
-                            # ハンドラを別タスクで実行し、リスニングループのブロッキングを防ぐ
-                            asyncio.create_task(handler(key_path))
+                # チャンネル名からキーパスを抽出
+                # naming.get_key_from_channelはbytes/strの両方を処理できるよう修正済みです
+                channel = message["channel"]
+                key_path = naming.get_key_from_channel(channel)
+                
+                # 実質的なパターンマッチングと配送処理はDispatcherが行います
+                self.dispatcher.handle_event(key_path)
 
             except asyncio.CancelledError:
                 break
-            except Exception:
-                # 接続断などの例外時は短い待機を挟んで再開
+            except Exception as e:
+                # 接続断などの例外時はログを出力して短い待機を挟んで再開します
+                print(f"DEBUG: Watcher loop error: {e}")
                 await asyncio.sleep(1)
 
     async def wait_for_key(self, path: str, timeout: float) -> bool:
         """
-        指定されたパスのキーが生成されるのを非同期で待ちます。
-        タイムアウト内に生成されればTrueを返し、そうでなければFalseを返します。
+        Dispatcherを介して特定のパスの出現を非同期で待ちます。
         """
-        loop = asyncio.get_running_loop()
-        future = loop.create_future()
-        self._waiters[path] = future
-
+        future = self.dispatcher.add_waiter(path)
         try:
             await asyncio.wait_for(future, timeout=timeout)
             return True
         except asyncio.TimeoutError:
-            # タイムアウト時は待機リストから削除
-            self._waiters.pop(path, None)
+            self.dispatcher.remove_waiter(path)
             return False
 
-    def register_handler(self, prefix: str, handler: Callable[[str], Awaitable[None]]) -> None:
+    def register_handler(self, pattern: str, handler: Callable[[str], Awaitable[None]]) -> None:
         """
-        特定のパス接頭辞に合致するキーが生成された際のコールバックを登録します。
+        Dispatcherに特定のパターンに対するハンドラを登録します。
         """
-        self._handlers[prefix] = handler
+        self.dispatcher.add_handler(pattern, handler)

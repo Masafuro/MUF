@@ -1,6 +1,6 @@
 # muf/protocol/naming.py
 
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Any
 from .constants import PROTOCOL_ROOT, PATH_SEPARATOR, KEYSPACE_PREFIX_TEMPLATE
 
 def build_path(unit_name: str, status: str, message_id: str) -> str:
@@ -40,11 +40,23 @@ def build_keyspace_pattern(unit_name: str = "*", status: str = "*", message_id: 
     path = build_path(unit_name, status, message_id)
     return f"{KEYSPACE_PREFIX_TEMPLATE}{path}"
 
-def get_key_from_channel(channel: bytes) -> str:
+def get_key_from_channel(channel: Any) -> str:
     """
-    チャンネル名からキーパスを抽出し、小文字に正規化して返します。
+    チャンネル名(bytesまたはstr)からキーパスを抽出し、小文字に正規化して返します。
+    モニターで成功している「最初のコロンで分割して後半を取得する」ロジックを採用し、
+    プレフィックスの不整合に強い実装にしています。
     """
-    channel_str = channel.decode("utf-8").lower()
-    if channel_str.startswith(KEYSPACE_PREFIX_TEMPLATE.lower()):
-        return channel_str[len(KEYSPACE_PREFIX_TEMPLATE):]
-    return channel_str
+    # バイト列で届いた場合は文字列に変換
+    if isinstance(channel, bytes):
+        channel_str = channel.decode("utf-8")
+    else:
+        channel_str = str(channel)
+        
+    normalized = channel_str.lower()
+    
+    # "__keyspace@0__:muf/unit/req/id" 形式からパス部分のみを抽出
+    if ":" in normalized:
+        # 最初のコロンで分割し、その後ろの部分（実際のキーパス）を返す
+        return normalized.split(":", 1)[1]
+    
+    return normalized
