@@ -1,16 +1,17 @@
+# terminal/docker-compose.yml
 services:
   muf-terminal:
-    build:
-      context: ..
-      dockerfile: terminal/Dockerfile
+    build: .
     container_name: muf-terminal
-    # 対話モードを有効にするための重要設定
-    tty: true
-    stdin_open: true
-    environment:
-      - REDIS_HOST=muf-redis
+    volumes:
+      - ../muf:/app/muf
+      - .:/app/terminal
     networks:
       - muf-network
+    restart: always
+    stdin_open: true
+    tty: true
+    command: python terminal/main.py
 
 networks:
   muf-network:
