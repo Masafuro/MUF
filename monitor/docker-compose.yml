@@ -7,7 +7,6 @@ services:
     environment:
       - REDIS_HOST=muf-redis
       - TARGET_PATH=*
-
 #      - TARGET_PATH=muf/*
 #      - TARGET_PATH=muf/test/unit
     networks:
