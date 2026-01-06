@@ -42,7 +42,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: muf-sample-unit
+    container_name: muf-custom-unit
     # ホストの8000番ポートをコンテナの8000番に繋ぎ、ブラウザアクセスを許可します
     ports:
       - "8000:8000"
@@ -50,7 +50,7 @@ services:
       # サブモジュール（親ディレクトリ）のmufをSDKとしてマウント
       - ../muf:/app/muf
       # ユニット自身のソースコードをマウント
-      - .:/app/sample-unit
+      - .:/app/custom-unit
     networks:
       - muf-network
     restart: always
@@ -75,7 +75,7 @@ ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app/muf:/app
 
 # 起動コマンド
-CMD ["uvicorn", "sample-unit.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "custom-unit.main:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
 ## カスタムユニット用 custom-unit/main.py について
 ```python
