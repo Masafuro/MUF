@@ -16,11 +16,17 @@ MUFプロトコルにおいて、すべてのデータは muf/[unit_name]/[statu
 
 ---
 
-## カスタムユニットと開発リファレンス
+## 開発リファレンス
 
-- [sample-unit](https://github.com/Masafuro/muf-sample-unit)
 - [ユニット開発リファレンス](https://github.com/Masafuro/MUF/blob/main/doc/custom-unit_reference.md)
 - [Pythonライブラリリファレンス](https://github.com/Masafuro/MUF/blob/main/doc/unit_reference_v2.md)
+
+## カスタムユニット
+- [sample-unit](https://github.com/Masafuro/muf-sample-unit)
+  - 開発参照用のサンプルユニット
+- [identify-uni](https://github.com/Masafuro/muf-identify-unit)
+  - ログイン機能とセッション発行機能を持つ認証ユニット
+
 ---
 
 ## 開発環境の運用手順
