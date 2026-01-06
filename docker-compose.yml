@@ -4,3 +4,4 @@ include:
   - monitor/docker-compose.yml
   - terminal/docker-compose.yml
   - echo-unit/docker-compose.yml
+  - check-unit/docker-compose.yml

@@ -1,3 +1,5 @@
+# redis/docker-compose.yml
+
 services:
   muf-redis:
     image: redis:7.2-alpine
@@ -23,7 +25,7 @@ services:
 
 networks:
   muf-network:
-    external: true
+    name: muf-network
 
 volumes:
   redis_data:

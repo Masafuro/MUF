@@ -1,0 +1,17 @@
+# check-unit/Dockerfile
+FROM python:3.11-alpine
+
+# Redisクライアントライブラリのインストール
+RUN pip install --no-cache-dir redis
+
+# 作業ディレクトリの設定
+WORKDIR /app
+
+# 環境変数の設定
+# PYTHONUNBUFFERED: ログをリアルタイムで表示
+# PYTHONPATH: /app/muf を共通ライブラリとして認識させる
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
+
+# 実行コマンドの指定
+CMD ["python", "check-unit/main.py"]

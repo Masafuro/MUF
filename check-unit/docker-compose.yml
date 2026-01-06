@@ -1,0 +1,18 @@
+# check-unit/docker-compose.yml
+services:
+  muf-check-unit:
+    build:
+      context: ..
+      dockerfile: check-unit/Dockerfile
+    container_name: muf-check-unit
+    volumes:
+      - ../muf:/app/muf
+      - .:/app/check-unit
+    environment:
+      - REDIS_HOST=muf-redis
+    networks:
+      - muf-network
+
+networks:
+  muf-network:
+    name: muf-network

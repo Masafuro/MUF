@@ -12,4 +12,4 @@ services:
 
 networks:
   muf-network:
-    external: true
+    name: muf-network
