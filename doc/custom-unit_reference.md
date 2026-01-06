@@ -1,7 +1,11 @@
 # カスタムユニット開発リファレンス
 
+詳しくは
+https://github.com/Masafuro/muf-sample-unit
+
 ## ディレクトリ構造
 
+```md
 (Project-root)/
 ├── docker-compose.yml         # プロジェクト全体用
 ├── custom-unit/               # カスタムユニットディレクトリ
@@ -11,6 +15,7 @@
 │   ├── requirements.txt       # 依存関係等
 │   └── static/, templates/    # 関連ファイル等
 └── muf/                       # **サブモジュール** MUF SDK本体
+```
 
 ## プロジェクト全体用 (Project-root)/docker-compose.yml のサンプル
 ```yml
