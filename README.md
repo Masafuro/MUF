@@ -20,7 +20,15 @@ MUFプロトコルにおいて、すべてのデータは muf/[unit_name]/[statu
 
 ルートディレクトリに配置された docker-compose.yml を司令塔として、システムの起動と観測を行います。各ユニットの設定は include 機能により統合管理されており、ネットワークの生成から削除までを Docker Compose が完全に自動管理するため、手動でのネットワーク作成は不要です。
 
-運用を開始する際は、まずシステムの神経網である Redis と自動応答を担うエコーユニットを `docker compose up -d muf-redis muf-echo-unit` でバックグラウンド起動します。基盤が立ち上がった後、一時的な診断用スクリプトであるチェックユニットを `docker compose run --rm muf-check-unit` で実行し、システム全体の通信機能が正常であることを検証します。動作が確認された後は、必要に応じて `docker compose run --rm muf-monitor` を使用したメモリ空間の観測や、`docker compose run --rm muf-terminal` を使用した対話的なリクエスト発行を行います。
+運用を開始する際は、まずシステムの神経網である Redis と自動応答を担うエコーユニットを
+
+> docker compose up -d muf-redis 
+
+でバックグラウンド起動します。基盤が立ち上がった後、一時的な診断用スクリプトであるチェックユニットを 
+
+> docker compose run --rm muf-check-unit
+
+で実行し、システム全体の通信機能が正常であることを検証します。動作が確認された後は、必要に応じて `docker compose run --rm muf-monitor` を使用したメモリ空間の観測や、`docker compose run --rm muf-terminal`, `docker compose run --rm muf-echo-unit` を使用した対話的なリクエスト発行を行います。
 
 ---
 
