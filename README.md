@@ -18,8 +18,9 @@ MUFプロトコルにおいて、すべてのデータは muf/[unit_name]/[statu
 
 ## 開発リファレンス
 
-- [ユニット開発リファレンス](https://github.com/Masafuro/MUF/blob/main/doc/custom-unit_reference.md)
-- [Pythonライブラリリファレンス](https://github.com/Masafuro/MUF/blob/main/doc/unit_reference_v2.md)
+- [カスタムユニット開発リファレンス](https://github.com/Masafuro/MUF/blob/main/doc/custom-unit_reference.md)
+- [ユニット実装リファレンス](https://github.com/Masafuro/MUF/blob/main/doc/unit_reference_v2.md)
+- [セキュリティガイドライン](https://github.com/Masafuro/MUF/blob/main/doc/security_guideline.md)
 
 ## カスタムユニット
 - [sample-unit](https://github.com/Masafuro/muf-sample-unit)
