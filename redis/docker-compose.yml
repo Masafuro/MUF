@@ -4,9 +4,9 @@ services:
   muf-redis:
     image: redis:7.2-alpine
     container_name: muf-redis
-    # 既存の設定を維持しつつ、末尾にACLファイルの指定を追加しました
-    command: 
-      - redis-server
+    # ACLファイルの参照先を /etc/redis/users.acl に変更しました
+    command:
+      - "redis-server"
       - "--notify-keyspace-events"
       - "KEA"
       - "--appendonly"
@@ -16,13 +16,12 @@ services:
       - "--maxmemory-policy"
       - "allkeys-lru"
       - "--aclfile"
-      - "/data/users.acl"
+      - "/etc/redis/users.acl"
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
-      # ホスト側のusers.aclをコンテナ内の指定したパスにマウントします
-      - ./users.acl:/data/users.acl
+      - ./users.acl:/etc/redis/users.acl:ro
     networks:
       - muf-network
     restart: always

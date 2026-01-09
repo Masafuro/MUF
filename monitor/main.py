@@ -1,7 +1,11 @@
 # monitor/main.py
 
 import asyncio
+import os
+import sys
+import traceback
 import redis.asyncio as redis
+from redis.exceptions import AuthenticationError
 from muf.protocol import naming
 
 async def monitor():
@@ -9,31 +13,39 @@ async def monitor():
     BASE_PATTERN = "muf/*"
     SUBSCRIBE_PATTERN = f"__keyspace@0__:{BASE_PATTERN}"
     
-    r = redis.Redis(host=REDIS_HOST, decode_responses=True)
+    db_user = os.getenv("REDIS_USERNAME", None)
+    db_pass = os.getenv("REDIS_PASSWORD", None)
+    
+    r = redis.Redis(
+        host=REDIS_HOST, 
+        username=db_user,
+        password=db_pass,
+        decode_responses=True
+    )
+    
     pubsub = r.pubsub()
     
     print("==============================================================================")
     print(" MUF Logic Monitor: Observing Memory Space Transitions")
+    print(f" User: {db_user if db_user else 'default'}")
     print(f" Status: Active (Subscribed to {BASE_PATTERN})")
     print("==============================================================================\n")
 
-    await pubsub.psubscribe(SUBSCRIBE_PATTERN)
-
     try:
+        # 権限チェックはここで行われます
+        await pubsub.psubscribe(SUBSCRIBE_PATTERN)
+
         async for message in pubsub.listen():
             if message["type"] != "pmessage":
                 continue
             
             event = message["data"]
             channel = message["channel"]
-            # チャンネル名からキーパスを抽出 (__keyspace@0__:muf/p/req/s1)
             path = channel.split(":", 1)[1]
             
-            # デバッグ行：解析前に必ず受信したことを知らせる
             print(f"DEBUG: Received [{event}] on {path}")
             
             try:
-                # パス解析（ここが失敗しても上のデバッグ行は動く）
                 unit, status, msg_id = naming.parse_path(path)
                 
                 if event in ["set", "expired", "del"]:
@@ -46,15 +58,21 @@ async def monitor():
                         
                     print(f"[{status.lower():^6}] {unit:<15} | ID: {msg_id:<12} | {display_data}")
                     
-            except Exception as e:
-                # 解析エラーの内容も表示するように変更
-                print(f"  └─ Parse Error: {e} (Path might not follow MUF rules)")
+            except Exception:
+                # 解析エラー時もトレースバックを表示して詳細を確認できるようにします
+                print(f"  └─ Parse Error (Path might not follow MUF rules)")
+                traceback.print_exc()
                 continue
                 
+    except AuthenticationError:
+        print("\n[!] 認証エラーが発生しました:")
+        traceback.print_exc()
     except asyncio.CancelledError:
         await pubsub.punsubscribe(SUBSCRIBE_PATTERN)
+    except Exception:
+        print("\n[!] 実行中に予期しないエラーが発生しました:")
+        traceback.print_exc()
     finally:
-        # 警告が出ていた close を aclose に変更
         await r.aclose()
 
 if __name__ == "__main__":
@@ -62,3 +80,5 @@ if __name__ == "__main__":
         asyncio.run(monitor())
     except KeyboardInterrupt:
         pass
+    except Exception:
+        traceback.print_exc()

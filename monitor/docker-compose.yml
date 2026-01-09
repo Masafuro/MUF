@@ -3,9 +3,14 @@ services:
   muf-monitor:
     build: .
     container_name: muf-monitor
+    # .env ファイルを読み込む設定を追加しました
+    env_file:
+      - .env
     volumes:
       - ../muf:/app/muf
       - .:/app/monitor
+    # 確実に /app を基準に実行されるようコマンドを指定します
+    command: python monitor/main.py
     networks:
       - muf-network
     restart: always

@@ -1,10 +1,13 @@
-# check-unit/docker-compose.yml
+# muf/check-unit/docker-compose.yml
 services:
   muf-check-unit:
     build:
       context: ..
       dockerfile: check-unit/Dockerfile
     container_name: muf-check-unit
+    # .env ファイルから環境変数を読み込む設定を追加
+    env_file:
+      - .env
     volumes:
       - ../muf:/app/muf
       - .:/app/check-unit
