@@ -1,10 +1,10 @@
-# redis/docker-compose.yml
+# muf/redis/docker-compose.yml
 
 services:
   muf-redis:
     image: redis:7.2-alpine
     container_name: muf-redis
-    # 引数を確実に渡すため、リスト形式（exec形式）で記述します
+    # 既存の設定を維持しつつ、末尾にACLファイルの指定を追加しました
     command: 
       - redis-server
       - "--notify-keyspace-events"
@@ -15,10 +15,14 @@ services:
       - "512mb"
       - "--maxmemory-policy"
       - "allkeys-lru"
+      - "--aclfile"
+      - "/data/users.acl"
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
+      # ホスト側のusers.aclをコンテナ内の指定したパスにマウントします
+      - ./users.acl:/data/users.acl
     networks:
       - muf-network
     restart: always

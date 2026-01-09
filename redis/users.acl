@@ -1,0 +1,8 @@
+# デバッグ時（パスワードなし・全権限許可）
+user default on nopass ~* +@all
+
+# 実行環境で無効化する場合（上記をコメントアウトし、以下を有効にする）
+# user default off
+
+# アプリケーション用ユーザー（必要に応じて追加）
+user muf_app on >SecurePass789 ~muf:* +@all
