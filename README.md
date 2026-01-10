@@ -29,7 +29,8 @@ MUFプロトコルにおいて、すべてのデータは muf/[unit_name]/[statu
 - [カスタムユニット開発リファレンス](https://github.com/Masafuro/MUF/blob/main/doc/custom-unit_reference.md)
 - [ユニット実装リファレンス](https://github.com/Masafuro/MUF/blob/main/doc/unit_reference_v2.md)
 - [セキュリティガイドライン](https://github.com/Masafuro/MUF/blob/main/doc/security_guideline.md)
-- [ACL権限管理ガイドライン](https://github.com/Masafuro/MUF/blob/main/redis/acl_reference.md)
+- [ACL管理ガイド](https://github.com/Masafuro/MUF/blob/main/redis/acl_reference.md)
+
 ## カスタムユニット
 - [sample-unit](https://github.com/Masafuro/muf-sample-unit)
   - 開発参照用のサンプルユニット
