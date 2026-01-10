@@ -1,6 +1,7 @@
 # echo_unit/main.py
 
 import asyncio
+import os
 from muf import MUFClient
 
 async def echo_handler(sender, msg_id, data):
@@ -30,20 +31,28 @@ async def main():
     ユニットのメインエントリポイントです。
     非同期コンテキストマネージャにより、接続と監視ループの開始・停止を自動管理します。
     """
-    # 接続先をDockerネットワーク内の 'muf-redis' に指定
-    # ユニット名は大文字を含んでもSDK内部で小文字に正規化されます
-    async with MUFClient(unit_name="echo-service", host="muf-redis") as client:
+    # 環境変数から接続情報を取得します
+    REDIS_HOST = os.getenv("REDIS_HOST", "muf-redis")
+    db_user = os.getenv("REDIS_USERNAME", None)
+    db_pass = os.getenv("REDIS_PASSWORD", None)
+
+    # 接続情報をMUFClientに渡します
+    async with MUFClient(
+        unit_name="echo-unit", 
+        host=REDIS_HOST,
+        username=db_user,
+        password=db_pass
+    ) as client:
         print("==========================================")
         print(" MUF Echo Unit: Listening for Requests")
+        print(f" User: {db_user if db_user else 'default'}")
         print(" Status: Ready (Case-Insensitive Mode)")
         print("==========================================")
         
         # システム全体のリクエスト（muf/*/req/*）を監視対象としてハンドラを登録
-        # dispatcher.py の fnmatch により、ワイルドカードが正常に機能します
         await client.listen(echo_handler)
         
         # ユニットを常駐させるための待機ループ
-        # watcherのlisten_loopは別タスクで動いているため、メインスレッドを維持します
         try:
             while True:
                 await asyncio.sleep(1)

@@ -6,7 +6,8 @@ ACL導入中
 - redis OK
 - monitor OK
 - check-unit OK
-- echo-unit, terminal not yet
+- echo-unit OK
+- terminal not yet
 
 ## プロジェクトの概要と設計思想
 

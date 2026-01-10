@@ -3,9 +3,15 @@ services:
   muf-echo-unit:
     build: .
     container_name: muf-echo-unit
+    # .envからREDIS_USERNAMEとREDIS_PASSWORDを読み込む設定を追加
+    env_file:
+      - .env
     volumes:
       - ../muf:/app/muf
       - .:/app/echo-unit
+    # Redisの接続先ホスト名を環境変数として追加
+    environment:
+      - REDIS_HOST=muf-redis
     networks:
       - muf-network
     restart: always
