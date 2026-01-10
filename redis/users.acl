@@ -1,3 +1,3 @@
-user default off
+user default on nopass ~* &* +@all
 user monitor on >MonitorPass123 ~* &* +@read +@connection +@pubsub -@write
 user check_unit on >CheckUnitPass2026 ~muf/check-unit/* &* +@read +@write +@pubsub +@connection
