@@ -3,6 +3,8 @@ services:
   muf-terminal:
     build: .
     container_name: muf-terminal
+    env_file:
+      - .env
     volumes:
       - ../muf:/app/muf
       - .:/app/terminal

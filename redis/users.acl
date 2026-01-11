@@ -1,4 +1,5 @@
-user default on nopass ~* &* +@all
+user default off
 user monitor on >MonitorPass123 ~* &* +@read +@connection +@pubsub -@write
 user check_unit on >CheckUnitPass2026 ~muf/check-unit/* &* +@read +@write +@pubsub +@connection
 user echo_unit on >EchoUnitPass2026 ~muf/*/req/* ~muf/*/res/* ~muf/*/err/* ~muf/echo-unit/* &* +@read +@write +@pubsub +@connection
+user terminal on >TerminalPass2026 ~muf/* &* -@read +@write +@pubsub +@connection

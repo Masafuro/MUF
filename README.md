@@ -1,13 +1,12 @@
 # MUF: Memory Unit Framework
 
-## 開発進捗
-ACL導入中
-- SDK OK
-- redis OK
-- monitor OK
-- check-unit OK
-- echo-unit OK
-- terminal not yet
+## devcontainer用コマンド
+起動したユニットをすべて一時停止
+- docker compose stop muf-monitor muf-echo-unit muf-terminal muf-check-unit
+起動したユニットの完全停止
+- docker container prune -f
+起動中ユニットの確認
+- docker ps -a
 
 ## プロジェクトの概要と設計思想
 
@@ -28,9 +27,10 @@ MUFプロトコルにおいて、すべてのデータは muf/[unit_name]/[statu
 ## 開発リファレンス
 
 - [カスタムユニット開発リファレンス](https://github.com/Masafuro/MUF/blob/main/docs/custom-unit_reference.md)
-- [ユニット実装リファレンス](https://github.com/Masafuro/MUF/blob/main/docs/unit_reference_v2.md)
+- [ユニット実装リファレンス](https://github.com/Masafuro/MUF/blob/main/docs/unit_dev_reference_v2.md)
 - [セキュリティガイドライン](https://github.com/Masafuro/MUF/blob/main/docs/security_guideline.md)
 - [ACL導入ガイドライン](https://github.com/Masafuro/MUF/blob/main/docs/acl_guideline.md)
+- [Devcontainer開発ガイドライン](https://github.com/Masafuro/MUF/blob/main/docs/devcontainer_development_guideline.md)
 
 
 ## カスタムユニット
@@ -63,8 +63,4 @@ MUFプロトコルにおいて、すべてのデータは muf/[unit_name]/[statu
 
 **muf/** ディレクトリは SDK の本体であり、接続管理やパスの正規化、ワイルドカード監視を担うコアライブラリを保持します。**check-unit/** は稼働中のシステムに対して通信シーケンスをテストし、健全性を保証するための一時実行用診断ユニットです。**monitor/** はキー空間通知を解釈してメモリ遷移を可視化する観測ツールであり、**terminal/** はユーザーが直接リクエスト発行や状態操作を行うための対話型インターフェースを提供します。**echo-unit/** はリクエストに対して自動的に応答を返すバックエンドの標準的な実装サンプルとして機能します。
 
----
 
-## 現在の進捗と開発フロー
-
-2026年1月、Docker インフラの抜本的な見直しを行い、ネットワーク管理を完全に自動化しました。これにより、手動での事前準備を一切必要としない堅牢な開発環境が構築されています。現在は診断ユニットによる自動テストが全ステップで成功しており、SDK の主要機能である状態管理とメッセージングが、コンテナ間の動的なネットワーク上で完璧に動作することが実証されています。今後はこの安定した基盤を維持しながら、実用的な業務ロジックを持つ新しいユニットの追加と、エコシステムの拡充を進めていきます。

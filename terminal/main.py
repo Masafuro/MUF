@@ -1,6 +1,7 @@
 # terminal/main.py
 
 import asyncio
+import os
 import sys
 from muf import MUFClient
 from muf.protocol import naming, constants
@@ -8,8 +9,12 @@ from muf.protocol import naming, constants
 async def main():
     REDIS_HOST = "muf-redis"
     
+    # Read environment variables for credentials
+    db_user = os.getenv("REDIS_USERNAME", None)
+    db_pass = os.getenv("REDIS_PASSWORD", None)
+    
     # ターミナル自体のアイデンティティは最小限に定義
-    client = MUFClient(unit_name="terminal-operator", host=REDIS_HOST)
+    client = MUFClient(unit_name="terminal-operator", host=REDIS_HOST, username=db_user, password=db_pass)
     
     print("MUF Memory Portal")
     print("Format: [path] [data]")

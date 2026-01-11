@@ -1,11 +1,22 @@
 {
-    "name": "MUF Development Environment",
+    "name": "MUF Full Project Development",
     "dockerComposeFile": [
         "../docker-compose.yml",
         "docker-compose.extend.yml"
     ],
-    "service": "muf-echo-unit",
+    "service": "muf-dev",
     "workspaceFolder": "/workspaces/MUF",
+    "features": {
+        "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+            "moby": false
+        }
+    },
+    "containerEnv": {
+        "COMPOSE_FILE": "docker-compose.yml:.devcontainer/docker-compose.extend.yml",
+        "PYTHONPATH": "/workspaces/MUF",
+        "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
+    },
+    "postCreateCommand": "git config --global --add safe.directory /workspaces/MUF",
     "customizations": {
         "vscode": {
             "extensions": [
