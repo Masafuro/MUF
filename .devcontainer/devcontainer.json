@@ -10,9 +10,7 @@
         "vscode": {
             "extensions": [
                 "ms-python.python",
-                "ms-python.vscode-pylint",
-                "ms-azuretools.vscode-docker",
-                "tamasfe.even-better-toml"
+                "ms-azuretools.vscode-docker"
             ],
             "settings": {
                 "python.analysis.extraPaths": [

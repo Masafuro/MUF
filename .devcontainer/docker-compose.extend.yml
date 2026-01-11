@@ -1,7 +1,8 @@
 services:
   muf-echo-unit:
     volumes:
-      - ..:/workspaces/MUF:cached
+      # 起点をリポジトリルートに変更
+      - .:/workspaces/MUF:cached
     command: /bin/sh -c "while sleep 1000; do :; done"
     environment:
       - PYTHONPATH=/workspaces/MUF
