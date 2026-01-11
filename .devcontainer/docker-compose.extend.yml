@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  muf-echo-unit:
+    volumes:
+      - ..:/workspaces/MUF:cached
+    command: /bin/sh -c "while sleep 1000; do :; done"
+    environment:
+      - PYTHONPATH=/workspaces/MUF
