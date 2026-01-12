@@ -1,16 +1,5 @@
 # MUF: Memory Unit Framework
 
-## devcontainer用コマンド
-
-起動したユニットをすべて一時停止
-- docker compose stop muf-monitor muf-echo-unit muf-terminal muf-check-unit
-
-起動したユニットの完全停止
-- docker container prune -f
-
-起動中ユニットの確認
-- docker ps -a
-
 ## プロジェクトの概要と設計思想
 
 MUF（Memory Unit Framework）は、分散システムにおけるユニット間連携を、Redis上の階層化されたキー空間の状態変化として再定義するフレームワークです。本フレームワークは、産業用コントローラの共有メモリ概念をネットワーク空間へ拡張し、各ユニットが特定の階層構造に従ってデータを配置することで、疎結合かつ自律的な連携を実現します。
