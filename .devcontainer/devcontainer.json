@@ -1,7 +1,6 @@
 {
-    "name": "MUF Full Project Development",
+    "name": "MUF Dedicated Development",
     "dockerComposeFile": [
-        "../docker-compose.yml",
         "docker-compose.extend.yml"
     ],
     "service": "muf-dev",
@@ -12,7 +11,7 @@
         }
     },
     "containerEnv": {
-        "COMPOSE_FILE": "docker-compose.yml:.devcontainer/docker-compose.extend.yml",
+        "COMPOSE_FILE": "docker-compose.yml",
         "PYTHONPATH": "/workspaces/MUF",
         "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
     },

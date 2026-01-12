@@ -1,4 +1,4 @@
-# /docker-compose.yml
+# muf/docker-compose.yml
 include:
   - redis/docker-compose.yml
   - monitor/docker-compose.yml

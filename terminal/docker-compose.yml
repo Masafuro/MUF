@@ -5,9 +5,11 @@ services:
     container_name: muf-terminal
     env_file:
       - .env
+    environment:
+      - LOCAL_WORKSPACE_FOLDER=${LOCAL_WORKSPACE_FOLDER:-..}
     volumes:
-      - ../muf:/app/muf
-      - .:/app/terminal
+      - ${LOCAL_WORKSPACE_FOLDER:-..}/muf:/app/muf
+      - ${LOCAL_WORKSPACE_FOLDER:-.}/terminal:/app/terminal
     networks:
       - muf-network
     restart: always

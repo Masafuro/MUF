@@ -1,42 +1,12 @@
+# .devcontainer/docker-compose.extend.yml
+name: muf-development-env
+
 services:
   muf-dev:
     image: mcr.microsoft.com/devcontainers/python:3.11-bookworm
     volumes:
-      - ${LOCAL_WORKSPACE_FOLDER:-.}:/workspaces/MUF:cached
+      - ..:/workspaces/MUF:cached
     command: /bin/sh -c "while sleep 1000; do :; done"
-    networks:
-      - muf-network
+    # 通信が不要なため外部ネットワークへの依存を削除し、独立したネットワークを使用します
     environment:
       - PYTHONPATH=/workspaces/MUF
-
-  muf-monitor:
-    volumes:
-      - ${LOCAL_WORKSPACE_FOLDER:-.}/muf:/app/muf
-      - ${LOCAL_WORKSPACE_FOLDER:-.}/monitor:/app/monitor
-    env_file:
-      - ./monitor/.env
-
-  muf-check-unit:
-    volumes:
-      - ${LOCAL_WORKSPACE_FOLDER:-.}/muf:/app/muf
-      - ${LOCAL_WORKSPACE_FOLDER:-.}/check-unit:/app/check-unit
-    env_file:
-      - ./check-unit/.env
-
-  muf-echo-unit:
-    volumes:
-      - ${LOCAL_WORKSPACE_FOLDER:-.}/muf:/app/muf
-      - ${LOCAL_WORKSPACE_FOLDER:-.}/echo-unit:/app/echo-unit
-    env_file:
-      - ./echo-unit/.env
-
-  muf-terminal:
-    volumes:
-      - ${LOCAL_WORKSPACE_FOLDER:-.}/muf:/app/muf
-      - ${LOCAL_WORKSPACE_FOLDER:-.}/terminal:/app/terminal
-    env_file:
-      - ./terminal/.env
-
-networks:
-  muf-network:
-    external: true

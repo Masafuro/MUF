@@ -1,15 +1,15 @@
-# monitor/docker-compose.yml
+# MUF/monitor/docker-compose.yml
 services:
   muf-monitor:
     build: .
     container_name: muf-monitor
-    # .env ファイルを読み込む設定を追加しました
-    env_file:
-      - .env
+    environment:
+      - REDIS_USERNAME=monitor
+      - REDIS_PASSWORD=MonitorPass123
     volumes:
-      - ../muf:/app/muf
-      - .:/app/monitor
-    # 確実に /app を基準に実行されるようコマンドを指定します
+      - ${LOCAL_WORKSPACE_FOLDER:-..}/muf:/app/muf:cached
+      - ${LOCAL_WORKSPACE_FOLDER:-.}/monitor:/app/monitor:cached
+      - ${LOCAL_WORKSPACE_FOLDER:-.}/monitor/logs:/app/monitor/logs:cached
     command: python monitor/main.py
     networks:
       - muf-network

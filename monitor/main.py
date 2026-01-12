@@ -7,6 +7,30 @@ import traceback
 import redis.asyncio as redis
 from redis.exceptions import AuthenticationError
 from muf.protocol import naming
+import logging
+from logging.handlers import RotatingFileHandler
+
+# Configure logging with rotating file handler
+log_dir = "logs"
+os.makedirs(log_dir, exist_ok=True)
+
+log_file = os.path.join(log_dir, "monitor.log")
+max_bytes = 51200  # 50kB max file size
+backup_count = 5  # Keep 5 backup files
+
+# Setup rotating file handler
+file_handler = RotatingFileHandler(log_file, maxBytes=max_bytes, backupCount=backup_count)
+file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+
+# Setup console handler
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+
+# Setup logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+logger.addHandler(file_handler)
+logger.addHandler(console_handler)
 
 async def monitor():
     REDIS_HOST = "muf-redis"
@@ -25,12 +49,12 @@ async def monitor():
     
     pubsub = r.pubsub()
     
-    print("==============================================================================")
-    print(" MUF Logic Monitor: Observing Memory Space Transitions")
-    print(f" User: {db_user if db_user else 'default'}")
-    print(f" Status: Active (Subscribed to {BASE_PATTERN})")
-    print("==============================================================================\n")
-
+    logger.info("==============================================================================")
+    logger.info(" MUF Logic Monitor: Observing Memory Space Transitions")
+    logger.info(f" User: {db_user if db_user else 'default'}")
+    logger.info(f" Status: Active (Subscribed to {BASE_PATTERN})")
+    logger.info("==============================================================================\n")
+    
     try:
         # 権限チェックはここで行われます
         await pubsub.psubscribe(SUBSCRIBE_PATTERN)
@@ -43,7 +67,7 @@ async def monitor():
             channel = message["channel"]
             path = channel.split(":", 1)[1]
             
-            print(f"DEBUG: Received [{event}] on {path}")
+            logger.debug(f"Received [{event}] on {path}")
             
             try:
                 unit, status, msg_id = naming.parse_path(path)
@@ -56,22 +80,22 @@ async def monitor():
                     else:
                         display_data = f"--- {event.upper()} ---"
                         
-                    print(f"[{status.lower():^6}] {unit:<15} | ID: {msg_id:<12} | {display_data}")
+                    logger.info(f"[{status.lower():^6}] {unit:<15} | ID: {msg_id:<12} | {display_data}")
                     
             except Exception:
                 # 解析エラー時もトレースバックを表示して詳細を確認できるようにします
-                print(f"  └─ Parse Error (Path might not follow MUF rules)")
-                traceback.print_exc()
+                logger.error("  └─ Parse Error (Path might not follow MUF rules)")
+                logger.debug(traceback.format_exc())
                 continue
-                
+          
     except AuthenticationError:
-        print("\n[!] 認証エラーが発生しました:")
-        traceback.print_exc()
+        logger.error("\n[!] 認証エラーが発生しました:")
+        logger.debug(traceback.format_exc())
     except asyncio.CancelledError:
         await pubsub.punsubscribe(SUBSCRIBE_PATTERN)
     except Exception:
-        print("\n[!] 実行中に予期しないエラーが発生しました:")
-        traceback.print_exc()
+        logger.error("\n[!] 実行中に予期しないエラーが発生しました:")
+        logger.debug(traceback.format_exc())
     finally:
         await r.aclose()
 

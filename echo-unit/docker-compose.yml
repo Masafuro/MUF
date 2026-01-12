@@ -6,12 +6,13 @@ services:
     # .envからREDIS_USERNAMEとREDIS_PASSWORDを読み込む設定を追加
     env_file:
       - .env
-    volumes:
-      - ../muf:/app/muf
-      - .:/app/echo-unit
-    # Redisの接続先ホスト名を環境変数として追加
     environment:
+      - LOCAL_WORKSPACE_FOLDER=${LOCAL_WORKSPACE_FOLDER:-..}
       - REDIS_HOST=muf-redis
+    volumes:
+      - ${LOCAL_WORKSPACE_FOLDER:-..}/muf:/app/muf
+      - ${LOCAL_WORKSPACE_FOLDER:-.}/echo-unit:/app/echo-unit
+    # Redisの接続先ホスト名を環境変数として追加
     networks:
       - muf-network
     restart: always

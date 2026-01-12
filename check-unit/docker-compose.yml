@@ -8,11 +8,12 @@ services:
     # .env ファイルから環境変数を読み込む設定を追加
     env_file:
       - .env
-    volumes:
-      - ../muf:/app/muf
-      - .:/app/check-unit
     environment:
+      - LOCAL_WORKSPACE_FOLDER=${LOCAL_WORKSPACE_FOLDER:-..}
       - REDIS_HOST=muf-redis
+    volumes:
+      - ${LOCAL_WORKSPACE_FOLDER:-..}/muf:/app/muf
+      - ${LOCAL_WORKSPACE_FOLDER:-.}/check-unit:/app/check-unit
     networks:
       - muf-network
 
